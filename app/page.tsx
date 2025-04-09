@@ -3,107 +3,94 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { VehicleSize, SpotSize, Vehicle, ParkingSpot } from "@/lib/types";
+import Car from "@/lib/models/Car";
+import Bus from "@/lib/models/Bus";
+import Motorcycle from "@/lib/models/Motorcycle";
+import { AbstractVehicle } from "@/lib/models/Vehicle";
 
-enum VehicleType {
-  Motorcycle = "Motorcycle",
-  Car = "Car",
-  Bus = "Bus",
-}
-
-enum SpotSize {
-  Motorcycle = "M",
-  Compact = "C",
-  Large = "L",
-}
-
-interface Vehicle {
-  type: VehicleType;
-  size: SpotSize;
-  spotsNeeded: number;
-}
-
-interface ParkingSpot {
-  size: SpotSize;
-  vehicle: Vehicle | null;
-}
-
-const vehicleConfigs: Record<VehicleType, Vehicle> = {
-  [VehicleType.Motorcycle]: { type: VehicleType.Motorcycle, size: SpotSize.Motorcycle, spotsNeeded: 1 },
-  [VehicleType.Car]: { type: VehicleType.Car, size: SpotSize.Compact, spotsNeeded: 1 },
-  [VehicleType.Bus]: { type: VehicleType.Bus, size: SpotSize.Large, spotsNeeded: 5 },
+const vehicleConfigs: Record<VehicleSize, Vehicle> = {
+  [VehicleSize.Motorcycle]: new Motorcycle(),
+  [VehicleSize.Car]: new Car(),
+  [VehicleSize.Bus]: new Bus(),
 };
+
 
 const TOTAL_SPOTS = 20;
 const spotSizes: SpotSize[] = [
-  SpotSize.Motorcycle,
-  SpotSize.Compact,
-  SpotSize.Compact,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Compact,
-  SpotSize.Compact,
-  SpotSize.Motorcycle,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Large,
-  SpotSize.Compact,
-  SpotSize.Compact,
-  SpotSize.Motorcycle,
-  SpotSize.Compact,
+  SpotSize.Large, SpotSize.Large, SpotSize.Large, SpotSize.Large, SpotSize.Large,
+  SpotSize.Large, SpotSize.Large, SpotSize.Large, SpotSize.Large, SpotSize.Large,
+  SpotSize.Compact, SpotSize.Compact, SpotSize.Compact, SpotSize.Compact, SpotSize.Compact,
+  SpotSize.Compact, SpotSize.Compact, SpotSize.Motorcycle, SpotSize.Motorcycle, SpotSize.Motorcycle,
 ];
-
-function canFit(spotSize: SpotSize, vehicleSize: SpotSize): boolean {
-  if (vehicleSize === SpotSize.Motorcycle) return true;
-  if (vehicleSize === SpotSize.Compact) return spotSize === SpotSize.Compact || spotSize === SpotSize.Large;
-  if (vehicleSize === SpotSize.Large) return spotSize === SpotSize.Large;
-  return false;
-}
 
 export default function ParkingLotUI() {
   const [parkingSpots, setParkingSpots] = useState<ParkingSpot[]>(
     spotSizes.map((size) => ({ size, vehicle: null }))
   );
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType | null>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleSize | null>(null);
 
-  const handlePark = () => {
-    if (!selectedVehicle) return;
-    const vehicle = vehicleConfigs[selectedVehicle];
-
-    for (let i = 0; i <= TOTAL_SPOTS - vehicle.spotsNeeded; i++) {
-      const spotsToCheck = parkingSpots.slice(i, i + vehicle.spotsNeeded);
-      const canAllFit = spotsToCheck.every(
-        (spot) => spot.vehicle === null && canFit(spot.size, vehicle.size)
-      );
-      if (canAllFit) {
-        const updated = [...parkingSpots];
-        for (let j = i; j < i + vehicle.spotsNeeded; j++) {
-          updated[j] = { ...updated[j], vehicle };
-        }
-        setParkingSpots(updated);
-        return;
-      }
+  const canFit = (spotSize: SpotSize, vehicleSize: VehicleSize): boolean => {
+    if (spotSize === SpotSize.Motorcycle && vehicleSize === VehicleSize.Motorcycle) {
+      return true;
+    } else if (spotSize === SpotSize.Compact && (vehicleSize === VehicleSize.Car || vehicleSize === VehicleSize.Motorcycle)) {
+      return true;
+    } else if (spotSize === SpotSize.Large && (vehicleSize === VehicleSize.Car || vehicleSize === VehicleSize.Bus)) {
+      return true;
     }
-    alert("No available spots for this vehicle.");
+    return false;
   };
 
+
+  const handlePark = async () => {
+    if (!selectedVehicle) return;
+    
+    // เลือกรถจาก vehicleConfigs โดยใช้ selectedVehicle
+    const vehicle = vehicleConfigs[selectedVehicle];
+    const vehicleInstance = vehicle;  // vehicleInstance คือ class หรือ object ที่สร้างจาก Vehicle
+    
+    // ลูปหาตำแหน่งที่สามารถจอดรถได้
+    for (let i = 0; i <= TOTAL_SPOTS - vehicleInstance.spotsNeeded; i++) {
+      const spotsToCheck = parkingSpots.slice(i, i + vehicleInstance.spotsNeeded);
+  
+      // เช็คว่า spots ที่เลือกว่างหรือไม่และมีขนาดที่ตรงกัน
+      const canAllFit = spotsToCheck.every(
+        (spot) => spot.vehicle === null && canFit(spot.size, vehicleInstance.vehicleSize)
+      );
+  
+      // ถ้าหาพื้นที่ที่เหมาะสมได้
+      if (canAllFit) {
+        const updated = [...parkingSpots];
+        
+        // อัปเดตสถานะของที่จอดรถด้วยการใส่ vehicleInstance ลงไป
+        for (let j = i; j < i + vehicleInstance.spotsNeeded; j++) {
+          updated[j] = { 
+            ...updated[j], 
+            vehicle: vehicleInstance // เพิ่มรถเข้าไปในที่จอดรถ
+          };
+        }
+        setParkingSpots(updated); // อัปเดตสถานะที่จอดรถ
+        return; // ออกจากฟังก์ชันเมื่อสำเร็จ
+      }
+    }
+  
+    // แจ้งเตือนกรณีไม่มีที่จอดรถว่าง
+    alert("No available spots for this vehicle.");
+  };
+  
   return (
     <main className="max-w-4xl mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold mb-6">🚗 Parking Lot Simulation</h1>
 
       <div className="flex items-center gap-4 mb-6">
-        <Select onValueChange={(v) => setSelectedVehicle(v as VehicleType)}>
+        <Select onValueChange={(v) => setSelectedVehicle(v as VehicleSize)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select Vehicle" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={VehicleType.Motorcycle}>🏍️ Motorcycle</SelectItem>
-            <SelectItem value={VehicleType.Car}>🚗 Car</SelectItem>
-            <SelectItem value={VehicleType.Bus}>🚌 Bus</SelectItem>
+            <SelectItem value={VehicleSize.Motorcycle}>🏍️ Motorcycle</SelectItem>
+            <SelectItem value={VehicleSize.Car}>🚗 Car</SelectItem>
+            <SelectItem value={VehicleSize.Bus}>🚌 Bus</SelectItem>
           </SelectContent>
         </Select>
         <Button onClick={handlePark} disabled={!selectedVehicle}>Park Vehicle</Button>

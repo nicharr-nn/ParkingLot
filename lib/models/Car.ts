@@ -1,19 +1,23 @@
-import { AbstractVehicle, VehicleSize } from "./Vehicle";
+import { AbstractVehicle } from "./Vehicle";
+import { ParkingSpot, SpotSize, VehicleSize } from "@/lib/types";
 
-class Car extends AbstractVehicle {
 
-  public canPark(): boolean {
-      throw new Error("Method not implemented.");
-  }
-
-  public getVehicleType(): string {
-    return "Car";
-  }
+export default class Car extends AbstractVehicle {
+  public type = "Car";
 
   constructor() {
     super({
       spotsNeeded: 1,
-      vehicleSize: VehicleSize.Compact,
+      vehicleSize: VehicleSize.Car,
     });
   }
+
+  public getVehicleType(): string {
+    return this.type;
+  }
+
+  public canPark(spots: ParkingSpot[]) {
+    return spots.every(spot => spot.size === SpotSize.Large || spot.size === SpotSize.Compact);
+  }
 }
+

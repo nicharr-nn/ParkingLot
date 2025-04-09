@@ -1,17 +1,10 @@
-export enum VehicleSize {
-    Motorcycle = 'M',   // Motorcycle
-    Compact = 'C',      // Compact car
-    Large = 'L'         // Large car
-}
+import { ParkingSpot, VehicleProps, VehicleSize } from '@/lib/types';
 
-export interface VehicleProps {
-  spotsNeeded: number;
-  vehicleSize: VehicleSize;
-}
 
 export abstract class AbstractVehicle {
-  protected spotsNeeded: number;
-  protected vehicleSize: VehicleSize;
+  public spotsNeeded: number;
+  public vehicleSize: VehicleSize;
+  public abstract type: string;
 
   constructor(props: VehicleProps) {
     this.spotsNeeded = props.spotsNeeded;
@@ -19,5 +12,5 @@ export abstract class AbstractVehicle {
   }
 
   public abstract getVehicleType(): string;
-  public abstract canPark(): boolean;
+  public abstract canPark(spots: ParkingSpot[]): boolean;
 }

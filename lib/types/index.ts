@@ -12,12 +12,6 @@ export enum SpotSize {
     Large = "L",
 }
 
-// export interface Vehicle {
-//     type: VehicleSize;
-//     size: SpotSize;
-//     spotsNeeded: number;
-// }
-
 export interface ParkingSpot {
     size: SpotSize;
     vehicle: Vehicle | null;

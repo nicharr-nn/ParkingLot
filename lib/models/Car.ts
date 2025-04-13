@@ -16,7 +16,7 @@ export default class Car extends AbstractVehicle {
     return this.type;
   }
 
-  public canPark(spots: ParkingSpot[]) {
+  public canPark(spots: ParkingSpot[]): boolean {
     return spots.every(spot => spot.size === SpotSize.Large || spot.size === SpotSize.Compact);
   }
 }

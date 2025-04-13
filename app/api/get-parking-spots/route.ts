@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { connectToDB } from "@/lib/mongodb";
+import MongoConnectSingleton from "@/lib/mongodb";
 import ParkingSpotRecord from "@/lib/models/ParkingSpot";
 
 export async function GET() {
   try {
-    await connectToDB();
+    const mongoConnect = MongoConnectSingleton.getInstance();
+    await mongoConnect.connectToDB();
 
     const records = await ParkingSpotRecord.find();
 

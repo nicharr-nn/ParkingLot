@@ -40,7 +40,7 @@ export default class ParkingLotManager {
       initialSpots ?? spotSizes.map((size) => ({ size, vehicle: null }));
   }
 
-  getSpots() {
+  getSpots(): ParkingSpot[] {
     return this.parkingSpots;
   }
 
@@ -48,17 +48,18 @@ export default class ParkingLotManager {
     this.parkingSpots = spots;
   }
 
-  async loadFromServer() {
-    const res = await fetch("/api/get-parking-spots/");
+  async loadFromServer(): Promise<void> {
+    const res = await fetch("/api/get-parking-spots");
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to load spots");
-    if (data.data?.length) {
-      this.parkingSpots = data.data[0].parkingSpots;
+
+    if (data.data?.parkingSpots) {
+      this.parkingSpots = data.data.parkingSpots;
     }
   }
 
-  async saveToServer() {
-    const res = await fetch("/api/save-parking/", {
+  async saveToServer(): Promise<void> {
+    const res = await fetch("/api/save-parking", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ parkingSpots: this.parkingSpots }),

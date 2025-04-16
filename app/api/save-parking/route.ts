@@ -1,3 +1,3 @@
-import MongoController from "@/lib/models/MongoController";
+import MongoConnectSingleton from "@/lib/mongodb";
 
-export const POST = MongoController.saveParkingSpots;
+export const POST = MongoConnectSingleton.saveParkingSpots;
